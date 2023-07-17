@@ -171,19 +171,14 @@ export class CRUDService {
 									blocks.channel_genesis_hash =$1 AND blocks.network_name = $2 AND blocknum >= 0 AND blocks.createdt between $3 AND $4
 								ORDER BY blocks.blocknum desc) a WHERE a.txhash IS NOT NULL LIMIT $6 OFFSET (($5 - 1) * $6)`;
 		} else {
-			sqlBlockTxList =`SELECT c.name AS channelname, 
-								b.blocknum, b.txcount, b.datahash, b.blockhash, b.prehash,b.createdt, b.blksize,
-								array_agg(t.txhash) AS txhash
-							FROM channel c
-							INNER JOIN blocks b ON b.channel_genesis_hash = c.channel_genesis_hash AND
-								b.network_name = c.network_name
-							INNER JOIN transactions t ON t.blockid = b.blocknum AND t.channel_genesis_hash = c.channel_genesis_hash
-								AND t.network_name = c.network_name AND t.createdt between $3 and $4 = c.createdt between $3 and $4
-								AND t.creator_msp_id IS NOT NULL AND t.creator_msp_id != ' ' AND length(t.creator_msp_id) > 0
-							WHERE c.channel_genesis_hash =$1 AND c.network_name = $2 AND b.blocknum >= 0 ${byOrgs} AND b.createdt between $3 and $4
-							GROUP BY c.name, b.blocknum, b.txcount, b.datahash, b.blockhash, b.prehash,b.createdt, b.blksize
-							ORDER BY b.blocknum DESC
-							LIMIT $6 OFFSET (($5 - 1) * $6)`;
+			sqlBlockTxList = `SELECT a.* FROM  (
+								SELECT (SELECT c.name FROM channel c WHERE c.channel_genesis_hash =$1 AND c.network_name = $2) 
+									as channelname, blocks.blocknum,blocks.txcount ,blocks.datahash ,blocks.blockhash ,blocks.prehash,blocks.createdt, blocks.blksize, (
+								SELECT array_agg(txhash) as txhash FROM transactions WHERE blockid = blocks.blocknum ${byOrgs}
+									AND transactions.creator_msp_id IS NOT NULL  
+									AND	channel_genesis_hash = $1 AND network_name = $2 AND createdt between $3 AND $4) FROM blocks WHERE
+									blocks.channel_genesis_hash =$1 AND blocks.network_name = $2 AND blocknum >= 0 AND blocks.createdt between $3 AND $4
+								ORDER BY blocks.blocknum desc) a WHERE a.txhash IS NOT NULL LIMIT $6 OFFSET (($5 - 1) * $6)`;
 		}
 		if (page == 1) {
 			let sqlBlockTxCount: string;
@@ -315,7 +310,7 @@ export class CRUDService {
 	 * @returns
 	 * @memberof CRUDService
 	 */
-	async saveTransaction(network_name, transaction) {
+	async saveTransaction(network_name, transaction, chaincodeversion) {
 		const c = await this.sql.getRowByPkOne(
 			'select count(1) as c from transactions where blockid=$1 and txhash=$2 and channel_genesis_hash=$3 and network_name = $4 ',
 			[
@@ -330,8 +325,8 @@ export class CRUDService {
 			transaction.network_name = network_name;
 			await this.sql.saveRow('transactions', transaction);
 			await this.sql.updateBySql(
-				'update chaincodes set txcount =txcount+1 where channel_genesis_hash=$1 and network_name = $2 and name=$3',
-				[transaction.channel_genesis_hash, network_name, transaction.chaincodename]
+				'update chaincodes set txcount =txcount+1 where channel_genesis_hash=$1 and network_name = $2 and name=$3 and version=$4',
+				[transaction.channel_genesis_hash, network_name, transaction.chaincodename, chaincodeversion]
 			);
 			await this.sql.updateBySql(
 				'update channel set trans =trans+1 where channel_genesis_hash=$1 and network_name = $2 ',

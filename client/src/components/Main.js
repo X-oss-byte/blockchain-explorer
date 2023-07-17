@@ -24,7 +24,6 @@ import {
 	peerListType,
 	txnListType,
 	blockSearchType,
-	peerStatusType,
 	blockRangeSearchType,
 	blockListSearchType,
 	chaincodeMetaDataType,
@@ -41,7 +40,6 @@ const {
 	blockActivitySelector,
 	channelListSelector,
 	dashStatsSelector,
-	peerStatusSelector,
 	transactionByOrgSelector
 } = chartSelectors;
 
@@ -89,7 +87,6 @@ export const Main = props => {
 		peerList,
 		txnList,
 		blockSearch,
-		peerStatus,
 		chaincodeMetaData,
 		getChaincodeMetaData,
 		transaction,
@@ -131,7 +128,8 @@ export const Main = props => {
 	const chaincodeViewProps = {
 		chaincodeList,
 		chaincodeMetaData,
-		getChaincodeMetaData
+		getChaincodeMetaData,
+		currentChannel
 	};
 
 	const channelsViewProps = {
@@ -141,7 +139,7 @@ export const Main = props => {
 	const dashboardViewProps = {
 		blockListSearch,
 		dashStats,
-		peerStatus,
+		peerList,
 		txnList,
 		blockSearch,
 		transactionByOrg,
@@ -257,7 +255,6 @@ Main.propTypes = {
 	peerList: peerListType.isRequired,
 	txnList: txnListType.isRequired,
 	blockSearch: blockSearchType.isRequired,
-	peerStatus: peerStatusType.isRequired,
 	chaincodeMetaData: chaincodeMetaDataType.isRequired,
 	transaction: transactionType.isRequired,
 	transactionByOrg: transactionByOrgType.isRequired,
@@ -274,7 +271,6 @@ const connectedComponent = connect(
 		peerList: peerListSelector(state),
 		txnList: txnListSelector(state),
 		blockSearch: blockSearchSelector(state),
-		peerStatus: peerStatusSelector(state),
 		chaincodeMetaData: chaincodeMetaDataSelector(state),
 		transaction: transactionSelector(state),
 		transactionByOrg: transactionByOrgSelector(state),
