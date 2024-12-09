@@ -25,7 +25,7 @@
 		"moment-timezone": "^0.5.16",
 		"nock": "^9.3.3",
 		"pg": "^7.4.1",
-		"prop-types": "^15.6.2",
+		"prop-types": "^15.8.1",
 		"react": "^16.14.0",
 		"react-copy-to-clipboard": "^5.0.1",
 		"react-d3-graph": "^1.0.1",
